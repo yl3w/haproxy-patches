@@ -40,6 +40,7 @@ releases, as discussed on the mailing list, which means that the consistent
 hashing will still apply the avalanche hash by default when no explicit
 algorithm is specified.
 
+<pre>
 Examples
   (default) hash-type map-based
 	Map based hashing using sdbm without avalanche
@@ -65,4 +66,5 @@ Additional Examples:
 	Consistent hashing using djb2 without avalanche
   (h) hash-type consistent djb2 avalanche
 	Consistent hashing using djb2 with avalanche
+</pre>
 
