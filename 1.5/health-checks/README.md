@@ -12,7 +12,7 @@ We add new directives to the http-check keyword
 
 The server option is used to specify an external
 health checking server to use for health checks.
-
+<pre>
 Example:
     http-check server <ipv4|ipv6>
 
@@ -37,6 +37,7 @@ to the external health checking server.
 
 Example:
     server id <addr> [info <value>]
+
 
 Putting it all togeather
 
@@ -70,4 +71,4 @@ backend bck1
  src/checks.c              |  112 ++++++++++++++++++++++++++-------------------
  6 files changed, 205 insertions(+), 69 deletions(-)
 
-
+</pre>
