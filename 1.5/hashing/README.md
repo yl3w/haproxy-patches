@@ -1,9 +1,13 @@
-=== DESCRIPTION ===
+DESCRIPTION
+===========
+
 This change set implement hashing functions enhancements. It adds hash functions
 and makes the use of avalanche logic explicit. These patches are part of 1.5
 release and you do not need these if using 1.5.
 
-====Enhance hash type directive with algorithm options=====
+Enhance hash type directive with algorithm options
+--------------------------------------------------
+
 In testing at tumblr, we found that using djb2 hashing instead of the
 default sdbm hashing resulted is better workload distribution to our backends.
 
@@ -22,7 +26,9 @@ Note: This change does NOT make changes to new features, for instance,
 applying an avalance hashing always being performed before applying
 consistent hashing.
 
-====Implement avalanche as modifier====
+Implement avalanche as modifier
+-------------------------------
+
 Avalanche is supported not as a native hashing choice, but a modifier
 on the hashing function. Note that this means that possible configs
 written after 1.5-dev4 using "hash-type avalanche" will get an informative
