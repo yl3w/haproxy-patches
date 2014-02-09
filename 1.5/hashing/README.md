@@ -3,7 +3,7 @@ DESCRIPTION
 
 This change set implement hashing functions enhancements. It adds hash functions
 and makes the use of avalanche logic explicit. These patches are part of 1.5
-release and you do not need these if using 1.5.
+release and you do **NOT** need these if using 1.5.
 
 Enhance hash type directive with algorithm options
 --------------------------------------------------
