@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" lang="en-US">
+<!-- git web interface version 1.6.0.4, (C) 2005-2006, Kay Sievers <kay.sievers@vrfy.org>, Christian Gierke -->
+<!-- git core binaries version 1.6.0.3 -->
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+<meta name="generator" content="gitweb/1.6.0.4 git/1.6.0.3"/>
+<meta name="robots" content="index, nofollow"/>
+<title>haproxy.1wt.eu Git - haproxy.git/summary</title>
+<link rel="stylesheet" type="text/css" href="http://git.1wt.eu/img/gitweb.css"/>
+<link rel="alternate" title="haproxy.git - log - RSS feed" href="/git?p=haproxy.git;a=rss" type="application/rss+xml" />
+<link rel="alternate" title="haproxy.git - log - RSS feed (no merges)" href="/git?p=haproxy.git;a=rss;opt=--no-merges" type="application/rss+xml" />
+<link rel="alternate" title="haproxy.git - log - Atom feed" href="/git?p=haproxy.git;a=atom;opt=--no-merges" type="application/atom+xml" />
+<link rel="alternate" title="haproxy.git - log - Atom feed (no merges)" href="/git?p=haproxy.git;a=atom;opt=--no-merges" type="application/atom+xml" />
+<link rel="shortcut icon" href="http://git.1wt.eu/img/git-favicon.png" type="image/png" />
+</head>
+<body>
+<div class="page_header">
+<a title="git homepage" href="http://git.or.cz/"><img src="http://git.1wt.eu/img/git-logo.png" width="72" height="27" alt="git" class="logo"/></a><a href="/git">projects</a> / <a href="/git?p=haproxy.git;a=summary">haproxy.git</a> / summary
+</div>
+<form method="get" action="/git" enctype="application/x-www-form-urlencoded">
+<div class="search">
+<input name="p" type="hidden" value="haproxy.git" />
+<input name="a" type="hidden" value="search" />
+<input name="h" type="hidden" value="HEAD" />
+<select name="st" >
+<option selected="selected" value="commit">commit</option>
+<option value="grep">grep</option>
+<option value="author">author</option>
+<option value="committer">committer</option>
+<option value="pickaxe">pickaxe</option>
+</select><sup><a href="/git?p=haproxy.git;a=search_help">?</a></sup> search:
+<input type="text" name="s"  />
+<span title="Extended regular expression"><label><input type="checkbox" name="sr" value="1" />re</label></span></div>
+</form>
+<div class="page_nav">
+summary | <a href="/git?p=haproxy.git;a=shortlog">shortlog</a> | <a href="/git?p=haproxy.git;a=log">log</a> | <a href="/git?p=haproxy.git;a=commit;h=bc233dd82b86cb63a9f4b35bc300301c4d247e59">commit</a> | <a href="/git?p=haproxy.git;a=commitdiff;h=bc233dd82b86cb63a9f4b35bc300301c4d247e59">commitdiff</a> | <a href="/git?p=haproxy.git;a=tree">tree</a><br/>
+<br/>
+</div>
+<div class="title">&nbsp;</div>
+<table class="projects_list">
+<tr><td>description</td><td>haproxy public development tree. Unstable code.</td></tr>
+<tr><td>owner</td><td></td></tr>
+<tr><td>last change</td><td>Sat, 8 Feb 2014 23:51:35 +0000</td></tr>
+<tr><td>URL</td><td>http://git.1wt.eu/git/haproxy.git/</td></tr>
+</table>
+<div class="header">
+<a class="title" href="/git?p=haproxy.git;a=shortlog">shortlog</a>
+</div>
+<table class="shortlog">
+<tr class="dark">
+<td title="2014-02-08"><i>3 hours ago</i></td>
+<td><i>Willy Tarreau</i></td>
+<td><a class="list subject" href="/git?p=haproxy.git;a=commit;h=bc233dd82b86cb63a9f4b35bc300301c4d247e59">MINOR: stats: report exact last session time in backend too <span class="refs"> <span class="head" title="heads/master">master</span></span></a></td>
+<td class="link"><a href="/git?p=haproxy.git;a=commit;h=bc233dd82b86cb63a9f4b35bc300301c4d247e59">commit</a> | <a href="/git?p=haproxy.git;a=commitdiff;h=bc233dd82b86cb63a9f4b35bc300301c4d247e59">commitdiff</a> | <a href="/git?p=haproxy.git;a=tree;h=bc233dd82b86cb63a9f4b35bc300301c4d247e59;hb=bc233dd82b86cb63a9f4b35bc300301c4d247e59">tree</a> | <a title="in format: tar.gz" href="/git?p=haproxy.git;a=snapshot;h=bc233dd82b86cb63a9f4b35bc300301c4d247e59;sf=tgz">snapshot</a></td>
+</tr>
+<tr class="light">
+<td title="2014-02-08"><i>27 hours ago</i></td>
+<td><i>Bhaskar Maddala</i></td>
+<td><a class="list subject" title="MINOR: stats: Enhancement to stats page to provide information of last session time." href="/git?p=haproxy.git;a=commit;h=a20cb85eba3ac8249cd746cca495e8364800d0bd">MINOR: stats: Enhancement to stats page to provide... </a></td>
+<td class="link"><a href="/git?p=haproxy.git;a=commit;h=a20cb85eba3ac8249cd746cca495e8364800d0bd">commit</a> | <a href="/git?p=haproxy.git;a=commitdiff;h=a20cb85eba3ac8249cd746cca495e8364800d0bd">commitdiff</a> | <a href="/git?p=haproxy.git;a=tree;h=a20cb85eba3ac8249cd746cca495e8364800d0bd;hb=a20cb85eba3ac8249cd746cca495e8364800d0bd">tree</a> | <a title="in format: tar.gz" href="/git?p=haproxy.git;a=snapshot;h=a20cb85eba3ac8249cd746cca495e8364800d0bd;sf=tgz">snapshot</a></td>
+</tr>
+<tr class="dark">
+<td title="2014-02-06"><i>2 days ago</i></td>
+<td><i>Willy Tarreau</i></td>
+<td><a class="list subject" href="/git?p=haproxy.git;a=commit;h=7bed945be0cc9c91cd0114a9bcb965702f9389e3">OPTIM: ssl: implement dynamic record size adjustment</a></td>
+<td class="link"><a href="/git?p=haproxy.git;a=commit;h=7bed945be0cc9c91cd0114a9bcb965702f9389e3">commit</a> | <a href="/git?p=haproxy.git;a=commitdiff;h=7bed945be0cc9c91cd0114a9bcb965702f9389e3">commitdiff</a> | <a href="/git?p=haproxy.git;a=tree;h=7bed945be0cc9c91cd0114a9bcb965702f9389e3;hb=7bed945be0cc9c91cd0114a9bcb965702f9389e3">tree</a> | <a title="in format: tar.gz" href="/git?p=haproxy.git;a=snapshot;h=7bed945be0cc9c91cd0114a9bcb965702f9389e3;sf=tgz">snapshot</a></td>
+</tr>
+<tr class="light">
+<td title="2014-02-06"><i>2 days ago</i></td>
+<td><i>Willy Tarreau</i></td>
+<td><a class="list subject" title="MEDIUM: connection: don't use real send() flags in snd_buf()" href="/git?p=haproxy.git;a=commit;h=1049b1f55137b6f28d829b81473ca495255b6e07">MEDIUM: connection: don't use real send() flags in... </a></td>
+<td class="link"><a href="/git?p=haproxy.git;a=commit;h=1049b1f55137b6f28d829b81473ca495255b6e07">commit</a> | <a href="/git?p=haproxy.git;a=commitdiff;h=1049b1f55137b6f28d829b81473ca495255b6e07">commitdiff</a> | <a href="/git?p=haproxy.git;a=tree;h=1049b1f55137b6f28d829b81473ca495255b6e07;hb=1049b1f55137b6f28d829b81473ca495255b6e07">tree</a> | <a title="in format: tar.gz" href="/git?p=haproxy.git;a=snapshot;h=1049b1f55137b6f28d829b81473ca495255b6e07;sf=tgz">snapshot</a></td>
+</tr>
+<tr class="dark">
+<td title="2014-02-05"><i>3 days ago</i></td>
+<td><i>Willy Tarreau</i></td>
+<td><a class="list subject" title="BUG/MEDIUM: checks: immediately report a connection success" href="/git?p=haproxy.git;a=commit;h=3be293f4a3f466b71ddde639690b91979c9498a5">BUG/MEDIUM: checks: immediately report a connection... </a></td>
+<td class="link"><a href="/git?p=haproxy.git;a=commit;h=3be293f4a3f466b71ddde639690b91979c9498a5">commit</a> | <a href="/git?p=haproxy.git;a=commitdiff;h=3be293f4a3f466b71ddde639690b91979c9498a5">commitdiff</a> | <a href="/git?p=haproxy.git;a=tree;h=3be293f4a3f466b71ddde639690b91979c9498a5;hb=3be293f4a3f466b71ddde639690b91979c9498a5">tree</a> | <a title="in format: tar.gz" href="/git?p=haproxy.git;a=snapshot;h=3be293f4a3f466b71ddde639690b91979c9498a5;sf=tgz">snapshot</a></td>
+</tr>
+<tr class="light">
+<td title="2014-02-05"><i>3 days ago</i></td>
+<td><i>William Lallemand</i></td>
+<td><a class="list subject" title="MINOR: http: optimize capture.req.method and capture.req.uri" href="/git?p=haproxy.git;a=commit;h=96a7785429d8dfb3c0df4fb83a08fe5600dab440">MINOR: http: optimize capture.req.method and capture... </a></td>
+<td class="link"><a href="/git?p=haproxy.git;a=commit;h=96a7785429d8dfb3c0df4fb83a08fe5600dab440">commit</a> | <a href="/git?p=haproxy.git;a=commitdiff;h=96a7785429d8dfb3c0df4fb83a08fe5600dab440">commitdiff</a> | <a href="/git?p=haproxy.git;a=tree;h=96a7785429d8dfb3c0df4fb83a08fe5600dab440;hb=96a7785429d8dfb3c0df4fb83a08fe5600dab440">tree</a> | <a title="in format: tar.gz" href="/git?p=haproxy.git;a=snapshot;h=96a7785429d8dfb3c0df4fb83a08fe5600dab440;sf=tgz">snapshot</a></td>
+</tr>
+<tr class="dark">
+<td title="2014-02-04"><i>4 days ago</i></td>
+<td><i>Willy Tarreau</i></td>
+<td><a class="list subject" href="/git?p=haproxy.git;a=commit;h=a23ee3a2ea12bcb8244304d308b9f3fe69169fd8">MINOR: session: clean up the connection free code</a></td>
+<td class="link"><a href="/git?p=haproxy.git;a=commit;h=a23ee3a2ea12bcb8244304d308b9f3fe69169fd8">commit</a> | <a href="/git?p=haproxy.git;a=commitdiff;h=a23ee3a2ea12bcb8244304d308b9f3fe69169fd8">commitdiff</a> | <a href="/git?p=haproxy.git;a=tree;h=a23ee3a2ea12bcb8244304d308b9f3fe69169fd8;hb=a23ee3a2ea12bcb8244304d308b9f3fe69169fd8">tree</a> | <a title="in format: tar.gz" href="/git?p=haproxy.git;a=snapshot;h=a23ee3a2ea12bcb8244304d308b9f3fe69169fd8;sf=tgz">snapshot</a></td>
+</tr>
+<tr class="light">
+<td title="2014-02-04"><i>4 days ago</i></td>
+<td><i>Baptiste Assmann</i></td>
+<td><a class="list subject" href="/git?p=haproxy.git;a=commit;h=f621bea74ab74cb19c48f972a066aba3e8326401">BUG/MINOR: tcpcheck connect wrong behavior</a></td>
+<td class="link"><a href="/git?p=haproxy.git;a=commit;h=f621bea74ab74cb19c48f972a066aba3e8326401">commit</a> | <a href="/git?p=haproxy.git;a=commitdiff;h=f621bea74ab74cb19c48f972a066aba3e8326401">commitdiff</a> | <a href="/git?p=haproxy.git;a=tree;h=f621bea74ab74cb19c48f972a066aba3e8326401;hb=f621bea74ab74cb19c48f972a066aba3e8326401">tree</a> | <a title="in format: tar.gz" href="/git?p=haproxy.git;a=snapshot;h=f621bea74ab74cb19c48f972a066aba3e8326401;sf=tgz">snapshot</a></td>
+</tr>
+<tr class="dark">
+<td title="2014-02-04"><i>4 days ago</i></td>
+<td><i>William Lallemand</i></td>
+<td><a class="list subject" href="/git?p=haproxy.git;a=commit;h=65ad6e12c1aaac8b4336b1240ef12de1b5a498c6">MINOR: http: capture.req.method and capture.req.uri</a></td>
+<td class="link"><a href="/git?p=haproxy.git;a=commit;h=65ad6e12c1aaac8b4336b1240ef12de1b5a498c6">commit</a> | <a href="/git?p=haproxy.git;a=commitdiff;h=65ad6e12c1aaac8b4336b1240ef12de1b5a498c6">commitdiff</a> | <a href="/git?p=haproxy.git;a=tree;h=65ad6e12c1aaac8b4336b1240ef12de1b5a498c6;hb=65ad6e12c1aaac8b4336b1240ef12de1b5a498c6">tree</a> | <a title="in format: tar.gz" href="/git?p=haproxy.git;a=snapshot;h=65ad6e12c1aaac8b4336b1240ef12de1b5a498c6;sf=tgz">snapshot</a></td>
+</tr>
+<tr class="light">
+<td title="2014-02-04"><i>4 days ago</i></td>
+<td><i>William Lallemand</i></td>
+<td><a class="list subject" href="/git?p=haproxy.git;a=commit;h=4d5b2e5a1d8396b728e5d3fc1d0973bdee19d1c0">DOC: add some information on capture.(req|res).hdr</a></td>
+<td class="link"><a href="/git?p=haproxy.git;a=commit;h=4d5b2e5a1d8396b728e5d3fc1d0973bdee19d1c0">commit</a> | <a href="/git?p=haproxy.git;a=commitdiff;h=4d5b2e5a1d8396b728e5d3fc1d0973bdee19d1c0">commitdiff</a> | <a href="/git?p=haproxy.git;a=tree;h=4d5b2e5a1d8396b728e5d3fc1d0973bdee19d1c0;hb=4d5b2e5a1d8396b728e5d3fc1d0973bdee19d1c0">tree</a> | <a title="in format: tar.gz" href="/git?p=haproxy.git;a=snapshot;h=4d5b2e5a1d8396b728e5d3fc1d0973bdee19d1c0;sf=tgz">snapshot</a></td>
+</tr>
+<tr class="dark">
+<td title="2014-02-02"><i>6 days ago</i></td>
+<td><i>Willy Tarreau</i></td>
+<td><a class="list subject" href="/git?p=haproxy.git;a=commit;h=1a34d57d26b5b4436d38e59506ed012ecfe0b815">[RELEASE] Released version 1.5-dev22 <span class="refs"> <span class="tag" title="tags/v1.5-dev22">v1.5-dev22</span></span></a></td>
+<td class="link"><a href="/git?p=haproxy.git;a=commit;h=1a34d57d26b5b4436d38e59506ed012ecfe0b815">commit</a> | <a href="/git?p=haproxy.git;a=commitdiff;h=1a34d57d26b5b4436d38e59506ed012ecfe0b815">commitdiff</a> | <a href="/git?p=haproxy.git;a=tree;h=1a34d57d26b5b4436d38e59506ed012ecfe0b815;hb=1a34d57d26b5b4436d38e59506ed012ecfe0b815">tree</a> | <a title="in format: tar.gz" href="/git?p=haproxy.git;a=snapshot;h=1a34d57d26b5b4436d38e59506ed012ecfe0b815;sf=tgz">snapshot</a></td>
+</tr>
+<tr class="light">
+<td title="2014-02-02"><i>6 days ago</i></td>
+<td><i>Baptiste Assmann</i></td>
+<td><a class="list subject" href="/git?p=haproxy.git;a=commit;h=69e273f3fcfbfb9cc0fb5a09668faad66cfbd36b">MEDIUM: tcp-check new feature: connect</a></td>
+<td class="link"><a href="/git?p=haproxy.git;a=commit;h=69e273f3fcfbfb9cc0fb5a09668faad66cfbd36b">commit</a> | <a href="/git?p=haproxy.git;a=commitdiff;h=69e273f3fcfbfb9cc0fb5a09668faad66cfbd36b">commitdiff</a> | <a href="/git?p=haproxy.git;a=tree;h=69e273f3fcfbfb9cc0fb5a09668faad66cfbd36b;hb=69e273f3fcfbfb9cc0fb5a09668faad66cfbd36b">tree</a> | <a title="in format: tar.gz" href="/git?p=haproxy.git;a=snapshot;h=69e273f3fcfbfb9cc0fb5a09668faad66cfbd36b;sf=tgz">snapshot</a></td>
+</tr>
+<tr class="dark">
+<td title="2014-02-02"><i>6 days ago</i></td>
+<td><i>Willy Tarreau</i></td>
+<td><a class="list subject" href="/git?p=haproxy.git;a=commit;h=7e4086dc183fb4e1db619b6e4394c7644e388542">BUG/MINOR: raw_sock: correctly set the MSG_MORE flag</a></td>
+<td class="link"><a href="/git?p=haproxy.git;a=commit;h=7e4086dc183fb4e1db619b6e4394c7644e388542">commit</a> | <a href="/git?p=haproxy.git;a=commitdiff;h=7e4086dc183fb4e1db619b6e4394c7644e388542">commitdiff</a> | <a href="/git?p=haproxy.git;a=tree;h=7e4086dc183fb4e1db619b6e4394c7644e388542;hb=7e4086dc183fb4e1db619b6e4394c7644e388542">tree</a> | <a title="in format: tar.gz" href="/git?p=haproxy.git;a=snapshot;h=7e4086dc183fb4e1db619b6e4394c7644e388542;sf=tgz">snapshot</a></td>
+</tr>
+<tr class="light">
+<td title="2014-02-02"><i>6 days ago</i></td>
+<td><i>Emeric Brun</i></td>
+<td><a class="list subject" href="/git?p=haproxy.git;a=commit;h=d8b2bb5c05e64c65ea3a6c9c69e719d853a667ad">MINOR: ssl: handshake optim for long certificate chains.</a></td>
+<td class="link"><a href="/git?p=haproxy.git;a=commit;h=d8b2bb5c05e64c65ea3a6c9c69e719d853a667ad">commit</a> | <a href="/git?p=haproxy.git;a=commitdiff;h=d8b2bb5c05e64c65ea3a6c9c69e719d853a667ad">commitdiff</a> | <a href="/git?p=haproxy.git;a=tree;h=d8b2bb5c05e64c65ea3a6c9c69e719d853a667ad;hb=d8b2bb5c05e64c65ea3a6c9c69e719d853a667ad">tree</a> | <a title="in format: tar.gz" href="/git?p=haproxy.git;a=snapshot;h=d8b2bb5c05e64c65ea3a6c9c69e719d853a667ad;sf=tgz">snapshot</a></td>
+</tr>
+<tr class="dark">
+<td title="2014-02-01"><i>7 days ago</i></td>
+<td><i>Willy Tarreau</i></td>
+<td><a class="list subject" href="/git?p=haproxy.git;a=commit;h=95ccdde1f2995a8b69f4285d1a9fb9e4b924793b">BUILD: listener: add fcntl.h and unistd.h</a></td>
+<td class="link"><a href="/git?p=haproxy.git;a=commit;h=95ccdde1f2995a8b69f4285d1a9fb9e4b924793b">commit</a> | <a href="/git?p=haproxy.git;a=commitdiff;h=95ccdde1f2995a8b69f4285d1a9fb9e4b924793b">commitdiff</a> | <a href="/git?p=haproxy.git;a=tree;h=95ccdde1f2995a8b69f4285d1a9fb9e4b924793b;hb=95ccdde1f2995a8b69f4285d1a9fb9e4b924793b">tree</a> | <a title="in format: tar.gz" href="/git?p=haproxy.git;a=snapshot;h=95ccdde1f2995a8b69f4285d1a9fb9e4b924793b;sf=tgz">snapshot</a></td>
+</tr>
+<tr class="light">
+<td title="2014-01-31"><i>8 days ago</i></td>
+<td><i>Willy Tarreau</i></td>
+<td><a class="list subject" title="BUG/MEDIUM: listener: improve detection of non-working accept4()" href="/git?p=haproxy.git;a=commit;h=818dca50984b758b7ec6ebe8874aeb92594ef446">BUG/MEDIUM: listener: improve detection of non-working... </a></td>
+<td class="link"><a href="/git?p=haproxy.git;a=commit;h=818dca50984b758b7ec6ebe8874aeb92594ef446">commit</a> | <a href="/git?p=haproxy.git;a=commitdiff;h=818dca50984b758b7ec6ebe8874aeb92594ef446">commitdiff</a> | <a href="/git?p=haproxy.git;a=tree;h=818dca50984b758b7ec6ebe8874aeb92594ef446;hb=818dca50984b758b7ec6ebe8874aeb92594ef446">tree</a> | <a title="in format: tar.gz" href="/git?p=haproxy.git;a=snapshot;h=818dca50984b758b7ec6ebe8874aeb92594ef446;sf=tgz">snapshot</a></td>
+</tr>
+<tr>
+<td colspan="4"><a href="/git?p=haproxy.git;a=shortlog">...</a></td>
+</tr>
+</table>
+<div class="header">
+<a class="title" href="/git?p=haproxy.git;a=tags">tags</a>
+</div>
+<table class="tags">
+<tr class="dark">
+<td><i>6 days ago</i></td>
+<td><a class="list name" href="/git?p=haproxy.git;a=commit;h=1a34d57d26b5b4436d38e59506ed012ecfe0b815">v1.5-dev22</a></td>
+<td></td>
+<td class="selflink">&nbsp;</td>
+<td class="link"> | <a href="/git?p=haproxy.git;a=commit;h=1a34d57d26b5b4436d38e59506ed012ecfe0b815">commit</a> | <a href="/git?p=haproxy.git;a=shortlog;h=refs/tags/v1.5-dev22">shortlog</a> | <a href="/git?p=haproxy.git;a=log;h=refs/tags/v1.5-dev22">log</a></td>
+</tr><tr class="light">
+<td><i>7 weeks ago</i></td>
+<td><a class="list name" href="/git?p=haproxy.git;a=commit;h=6b07bf75984a7d9e3e796c92415dfa3c45516a70">v1.5-dev21</a></td>
+<td></td>
+<td class="selflink">&nbsp;</td>
+<td class="link"> | <a href="/git?p=haproxy.git;a=commit;h=6b07bf75984a7d9e3e796c92415dfa3c45516a70">commit</a> | <a href="/git?p=haproxy.git;a=shortlog;h=refs/tags/v1.5-dev21">shortlog</a> | <a href="/git?p=haproxy.git;a=log;h=refs/tags/v1.5-dev21">log</a></td>
+</tr><tr class="dark">
+<td><i>7 weeks ago</i></td>
+<td><a class="list name" href="/git?p=haproxy.git;a=commit;h=11f64d65ffabee4f46c8bd789ceb1507aca36944">v1.5-dev20</a></td>
+<td></td>
+<td class="selflink">&nbsp;</td>
+<td class="link"> | <a href="/git?p=haproxy.git;a=commit;h=11f64d65ffabee4f46c8bd789ceb1507aca36944">commit</a> | <a href="/git?p=haproxy.git;a=shortlog;h=refs/tags/v1.5-dev20">shortlog</a> | <a href="/git?p=haproxy.git;a=log;h=refs/tags/v1.5-dev20">log</a></td>
+</tr><tr class="light">
+<td><i>7 months ago</i></td>
+<td><a class="list name" href="/git?p=haproxy.git;a=commit;h=eab1dc6234c1ac53a0c3e64890cf7d7031eb6ffa">v1.5-dev19</a></td>
+<td></td>
+<td class="selflink">&nbsp;</td>
+<td class="link"> | <a href="/git?p=haproxy.git;a=commit;h=eab1dc6234c1ac53a0c3e64890cf7d7031eb6ffa">commit</a> | <a href="/git?p=haproxy.git;a=shortlog;h=refs/tags/v1.5-dev19">shortlog</a> | <a href="/git?p=haproxy.git;a=log;h=refs/tags/v1.5-dev19">log</a></td>
+</tr><tr class="dark">
+<td><i>10 months ago</i></td>
+<td><a class="list name" href="/git?p=haproxy.git;a=commit;h=289dd92a647004ba7c54597b87658cfba70c753b">v1.5-dev18</a></td>
+<td></td>
+<td class="selflink">&nbsp;</td>
+<td class="link"> | <a href="/git?p=haproxy.git;a=commit;h=289dd92a647004ba7c54597b87658cfba70c753b">commit</a> | <a href="/git?p=haproxy.git;a=shortlog;h=refs/tags/v1.5-dev18">shortlog</a> | <a href="/git?p=haproxy.git;a=log;h=refs/tags/v1.5-dev18">log</a></td>
+</tr><tr class="light">
+<td><i>13 months ago</i></td>
+<td><a class="list name" href="/git?p=haproxy.git;a=commit;h=a3ecbd902345862b4a399f8a0bbaace6bc7ba4e6">v1.5-dev17</a></td>
+<td></td>
+<td class="selflink">&nbsp;</td>
+<td class="link"> | <a href="/git?p=haproxy.git;a=commit;h=a3ecbd902345862b4a399f8a0bbaace6bc7ba4e6">commit</a> | <a href="/git?p=haproxy.git;a=shortlog;h=refs/tags/v1.5-dev17">shortlog</a> | <a href="/git?p=haproxy.git;a=log;h=refs/tags/v1.5-dev17">log</a></td>
+</tr><tr class="dark">
+<td><i>13 months ago</i></td>
+<td><a class="list name" href="/git?p=haproxy.git;a=commit;h=69eda35acdbd9734d1844764f314fe393cc1072f">v1.5-dev16</a></td>
+<td></td>
+<td class="selflink">&nbsp;</td>
+<td class="link"> | <a href="/git?p=haproxy.git;a=commit;h=69eda35acdbd9734d1844764f314fe393cc1072f">commit</a> | <a href="/git?p=haproxy.git;a=shortlog;h=refs/tags/v1.5-dev16">shortlog</a> | <a href="/git?p=haproxy.git;a=log;h=refs/tags/v1.5-dev16">log</a></td>
+</tr><tr class="light">
+<td><i>13 months ago</i></td>
+<td><a class="list name" href="/git?p=haproxy.git;a=commit;h=0cae4b3218d4535eeddfee7cdc51e298b5872a76">v1.5-dev15</a></td>
+<td></td>
+<td class="selflink">&nbsp;</td>
+<td class="link"> | <a href="/git?p=haproxy.git;a=commit;h=0cae4b3218d4535eeddfee7cdc51e298b5872a76">commit</a> | <a href="/git?p=haproxy.git;a=shortlog;h=refs/tags/v1.5-dev15">shortlog</a> | <a href="/git?p=haproxy.git;a=log;h=refs/tags/v1.5-dev15">log</a></td>
+</tr><tr class="dark">
+<td><i>14 months ago</i></td>
+<td><a class="list name" href="/git?p=haproxy.git;a=commit;h=fee48ce45295d9ac8cd97bb850860ae31c5e4df0">v1.5-dev14</a></td>
+<td></td>
+<td class="selflink">&nbsp;</td>
+<td class="link"> | <a href="/git?p=haproxy.git;a=commit;h=fee48ce45295d9ac8cd97bb850860ae31c5e4df0">commit</a> | <a href="/git?p=haproxy.git;a=shortlog;h=refs/tags/v1.5-dev14">shortlog</a> | <a href="/git?p=haproxy.git;a=log;h=refs/tags/v1.5-dev14">log</a></td>
+</tr><tr class="light">
+<td><i>14 months ago</i></td>
+<td><a class="list name" href="/git?p=haproxy.git;a=commit;h=ad15d127a7dd013e2d1b1966db211235e78aab42">v1.5-dev13</a></td>
+<td></td>
+<td class="selflink">&nbsp;</td>
+<td class="link"> | <a href="/git?p=haproxy.git;a=commit;h=ad15d127a7dd013e2d1b1966db211235e78aab42">commit</a> | <a href="/git?p=haproxy.git;a=shortlog;h=refs/tags/v1.5-dev13">shortlog</a> | <a href="/git?p=haproxy.git;a=log;h=refs/tags/v1.5-dev13">log</a></td>
+</tr><tr class="dark">
+<td><i>16 months ago</i></td>
+<td><a class="list name" href="/git?p=haproxy.git;a=commit;h=16216828fcdaeeac70fb69415193eae1dc7808a5">v1.5-dev12</a></td>
+<td></td>
+<td class="selflink">&nbsp;</td>
+<td class="link"> | <a href="/git?p=haproxy.git;a=commit;h=16216828fcdaeeac70fb69415193eae1dc7808a5">commit</a> | <a href="/git?p=haproxy.git;a=shortlog;h=refs/tags/v1.5-dev12">shortlog</a> | <a href="/git?p=haproxy.git;a=log;h=refs/tags/v1.5-dev12">log</a></td>
+</tr><tr class="light">
+<td><i>20 months ago</i></td>
+<td><a class="list name" href="/git?p=haproxy.git;a=commit;h=02c7c14ae7b7a0fca10b7997c205a1bbd92cfd4b">v1.5-dev11</a></td>
+<td></td>
+<td class="selflink">&nbsp;</td>
+<td class="link"> | <a href="/git?p=haproxy.git;a=commit;h=02c7c14ae7b7a0fca10b7997c205a1bbd92cfd4b">commit</a> | <a href="/git?p=haproxy.git;a=shortlog;h=refs/tags/v1.5-dev11">shortlog</a> | <a href="/git?p=haproxy.git;a=log;h=refs/tags/v1.5-dev11">log</a></td>
+</tr><tr class="dark">
+<td><i>20 months ago</i></td>
+<td><a class="list name" href="/git?p=haproxy.git;a=commit;h=ffb8947bb8039d5d343bb5b12f18a86b485fce80">v1.5-dev10</a></td>
+<td></td>
+<td class="selflink">&nbsp;</td>
+<td class="link"> | <a href="/git?p=haproxy.git;a=commit;h=ffb8947bb8039d5d343bb5b12f18a86b485fce80">commit</a> | <a href="/git?p=haproxy.git;a=shortlog;h=refs/tags/v1.5-dev10">shortlog</a> | <a href="/git?p=haproxy.git;a=log;h=refs/tags/v1.5-dev10">log</a></td>
+</tr><tr class="light">
+<td><i>21 months ago</i></td>
+<td><a class="list name" href="/git?p=haproxy.git;a=commit;h=a0564f35411722a680e3a25ebe876c408101b861">v1.5-dev9</a></td>
+<td></td>
+<td class="selflink">&nbsp;</td>
+<td class="link"> | <a href="/git?p=haproxy.git;a=commit;h=a0564f35411722a680e3a25ebe876c408101b861">commit</a> | <a href="/git?p=haproxy.git;a=shortlog;h=refs/tags/v1.5-dev9">shortlog</a> | <a href="/git?p=haproxy.git;a=log;h=refs/tags/v1.5-dev9">log</a></td>
+</tr><tr class="dark">
+<td><i>22 months ago</i></td>
+<td><a class="list name" href="/git?p=haproxy.git;a=commit;h=9eeb57bd7f8f5fab0383b4777352572ba583859b">v1.5-dev8</a></td>
+<td></td>
+<td class="selflink">&nbsp;</td>
+<td class="link"> | <a href="/git?p=haproxy.git;a=commit;h=9eeb57bd7f8f5fab0383b4777352572ba583859b">commit</a> | <a href="/git?p=haproxy.git;a=shortlog;h=refs/tags/v1.5-dev8">shortlog</a> | <a href="/git?p=haproxy.git;a=log;h=refs/tags/v1.5-dev8">log</a></td>
+</tr><tr class="light">
+<td><i>2 years ago</i></td>
+<td><a class="list name" href="/git?p=haproxy.git;a=commit;h=60612ebbbf28de4f13393d411c8368a0bf001289">v1.5-dev7</a></td>
+<td></td>
+<td class="selflink">&nbsp;</td>
+<td class="link"> | <a href="/git?p=haproxy.git;a=commit;h=60612ebbbf28de4f13393d411c8368a0bf001289">commit</a> | <a href="/git?p=haproxy.git;a=shortlog;h=refs/tags/v1.5-dev7">shortlog</a> | <a href="/git?p=haproxy.git;a=log;h=refs/tags/v1.5-dev7">log</a></td>
+</tr><tr>
+<td colspan="5"><a href="/git?p=haproxy.git;a=tags">...</a></td>
+</tr>
+</table>
+<div class="header">
+<a class="title" href="/git?p=haproxy.git;a=heads">heads</a>
+</div>
+<table class="heads">
+<tr class="dark">
+<td><i>3 hours ago</i></td>
+<td class="current_head"><a class="list name" href="/git?p=haproxy.git;a=shortlog;h=refs/heads/master">master</a></td>
+<td class="link"><a href="/git?p=haproxy.git;a=shortlog;h=refs/heads/master">shortlog</a> | <a href="/git?p=haproxy.git;a=log;h=refs/heads/master">log</a> | <a href="/git?p=haproxy.git;a=tree;h=refs/heads/master;hb=master">tree</a></td>
+</tr><tr class="light">
+<td><i>2 years ago</i></td>
+<td><a class="list name" href="/git?p=haproxy.git;a=shortlog;h=refs/heads/horms-rebased7">horms-rebased7</a></td>
+<td class="link"><a href="/git?p=haproxy.git;a=shortlog;h=refs/heads/horms-rebased7">shortlog</a> | <a href="/git?p=haproxy.git;a=log;h=refs/heads/horms-rebased7">log</a> | <a href="/git?p=haproxy.git;a=tree;h=refs/heads/horms-rebased7;hb=horms-rebased7">tree</a></td>
+</tr></table>
+<div class="page_footer">
+<div class="page_footer_text">haproxy public development tree. Unstable code.</div>
+<a class="rss_logo" title="log RSS feed" href="/git?p=haproxy.git;a=rss">RSS</a>
+<a class="rss_logo" title="log Atom feed" href="/git?p=haproxy.git;a=atom">Atom</a>
+</div>
+</body>
+</html>
