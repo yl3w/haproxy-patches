@@ -17,3 +17,9 @@ the source code with all the patches applied.
 If you are only looking for source with the patches applied you can get it from these
 repos. If you are looking to apply the patched yourself you can obtain the patches
 from this repo for the corresponding version.
+
+Each folder corresponding to the version also provides "sequenced" patches. These
+patches can be applied in order starting with the lowest sequence number.
+
+Patches in folder starting with 0001 can be applied independently of the 
+remainder of the patches.
