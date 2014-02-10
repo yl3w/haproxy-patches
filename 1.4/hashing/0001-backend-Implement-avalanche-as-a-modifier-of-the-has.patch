@@ -1,4 +1,4 @@
-From 53ffb734da615c85165ae698567c872a6c3503d3 Mon Sep 17 00:00:00 2001
+From dda917117905ce8c55f0a21d3ee411a133bc4c4d Mon Sep 17 00:00:00 2001
 From: Bhaskar Maddala <bhaskar@tumblr.com>
 Date: Mon, 10 Feb 2014 14:57:28 -0500
 Subject: [PATCH] backend: Implement avalanche as a modifier of the hashing
@@ -63,14 +63,15 @@ backend: Enhance hash-type directive with an algorithm options
     applying an avalance hashing always being performed before applying
     consistent hashing.
 ---
- Makefile                |  2 +-
- include/common/hash.h   | 29 ++++++++++++++++
- include/types/backend.h | 10 ++++++
- src/backend.c           | 85 ++++++++++++++++++++++++++++++++++-------------
- src/cfgparse.c          | 50 ++++++++++++++++++++++++++--
- src/hash.c              | 88 +++++++++++++++++++++++++++++++++++++++++++++++++
- src/lb_chash.c          |  2 --
- 7 files changed, 239 insertions(+), 27 deletions(-)
+ Makefile                 |  2 +-
+ include/common/hash.h    | 29 ++++++++++++++++
+ include/proto/lb_chash.h |  1 +
+ include/types/backend.h  | 10 ++++++
+ src/backend.c            | 86 ++++++++++++++++++++++++++++++++++------------
+ src/cfgparse.c           | 50 +++++++++++++++++++++++++--
+ src/hash.c               | 88 ++++++++++++++++++++++++++++++++++++++++++++++++
+ src/lb_chash.c           |  4 +--
+ 8 files changed, 242 insertions(+), 28 deletions(-)
  create mode 100644 include/common/hash.h
  create mode 100644 src/hash.c
 
@@ -122,6 +123,18 @@ index 0000000..379bf89
 +unsigned long hash_sdbm(const char *key, int len);
 +
 +#endif /* _COMMON_HASH_H_ */
+diff --git a/include/proto/lb_chash.h b/include/proto/lb_chash.h
+index a0ebf69..338dd74 100644
+--- a/include/proto/lb_chash.h
++++ b/include/proto/lb_chash.h
+@@ -26,6 +26,7 @@
+ #include <types/proxy.h>
+ #include <types/server.h>
+ 
++unsigned int chash_hash(unsigned int a);
+ void chash_init_server_tree(struct proxy *p);
+ struct server *chash_get_next_server(struct proxy *p, struct server *srvtoavoid);
+ struct server *chash_get_server_hash(struct proxy *p, unsigned int hash);
 diff --git a/include/types/backend.h b/include/types/backend.h
 index 1067125..6724af0 100644
 --- a/include/types/backend.h
@@ -144,10 +157,18 @@ index 1067125..6724af0 100644
  
  /* The scale factor between user weight and effective weight allows smooth
 diff --git a/src/backend.c b/src/backend.c
-index d228a52..2cb8d20 100644
+index d228a52..53c9f75 100644
 --- a/src/backend.c
 +++ b/src/backend.c
-@@ -41,6 +41,28 @@
+@@ -24,6 +24,7 @@
+ #include <common/debug.h>
+ #include <common/ticks.h>
+ #include <common/time.h>
++#include <common/hash.h>
+ 
+ #include <types/global.h>
+ 
+@@ -41,6 +42,28 @@
  #include <proto/session.h>
  #include <proto/task.h>
  
@@ -176,7 +197,7 @@ index d228a52..2cb8d20 100644
  /*
   * This function recounts the number of usable active and backup servers for
   * proxy <p>. These numbers are returned into the p->srv_act and p->srv_bck.
-@@ -141,6 +163,7 @@ struct server *get_server_uh(struct proxy *px, char *uri, int uri_len)
+@@ -141,6 +164,7 @@ struct server *get_server_uh(struct proxy *px, char *uri, int uri_len)
  	unsigned long hash = 0;
  	int c;
  	int slashes = 0;
@@ -184,7 +205,7 @@ index d228a52..2cb8d20 100644
  
  	if (px->lbprm.tot_weight == 0)
  		return NULL;
-@@ -152,8 +175,9 @@ struct server *get_server_uh(struct proxy *px, char *uri, int uri_len)
+@@ -152,8 +176,9 @@ struct server *get_server_uh(struct proxy *px, char *uri, int uri_len)
  	if (px->uri_len_limit)
  		uri_len = MIN(uri_len, px->uri_len_limit);
  
@@ -195,7 +216,7 @@ index d228a52..2cb8d20 100644
  		if (c == '/') {
  			slashes++;
  			if (slashes == px->uri_dirs_depth1) /* depth+1 */
-@@ -161,9 +185,13 @@ struct server *get_server_uh(struct proxy *px, char *uri, int uri_len)
+@@ -161,9 +186,13 @@ struct server *get_server_uh(struct proxy *px, char *uri, int uri_len)
  		}
  		else if (c == '?' && !px->uri_whole)
  			break;
@@ -211,7 +232,7 @@ index d228a52..2cb8d20 100644
   hash_done:
  	if (px->lbprm.algo & BE_LB_LKUP_CHTREE)
  		return chash_get_server_hash(px, hash);
-@@ -183,6 +211,7 @@ struct server *get_server_uh(struct proxy *px, char *uri, int uri_len)
+@@ -183,6 +212,7 @@ struct server *get_server_uh(struct proxy *px, char *uri, int uri_len)
  struct server *get_server_ph(struct proxy *px, const char *uri, int uri_len)
  {
  	unsigned long hash = 0;
@@ -219,7 +240,7 @@ index d228a52..2cb8d20 100644
  	const char *p;
  	const char *params;
  	int plen;
-@@ -209,13 +238,18 @@ struct server *get_server_ph(struct proxy *px, const char *uri, int uri_len)
+@@ -209,13 +239,18 @@ struct server *get_server_ph(struct proxy *px, const char *uri, int uri_len)
  				 * skip the equal symbol
  				 */
  				p += plen + 1;
@@ -236,12 +257,12 @@ index d228a52..2cb8d20 100644
 +				hash = gen_hash(px, start, (end - start));
 +
 +				if ((px->lbprm.algo & BE_LB_HASH_MOD) == BE_LB_HMOD_AVAL)
-+					hash = full_hash(hash);
++					hash = chash_hash(hash);
 +
  				if (px->lbprm.algo & BE_LB_LKUP_CHTREE)
  					return chash_get_server_hash(px, hash);
  				else
-@@ -247,6 +281,7 @@ struct server *get_server_ph_post(struct session *s)
+@@ -247,6 +282,7 @@ struct server *get_server_ph_post(struct session *s)
  	unsigned long    len  = msg->body_len;
  	const char      *params = req->data + msg->sov;
  	const char      *p    = params;
@@ -249,7 +270,7 @@ index d228a52..2cb8d20 100644
  
  	if (len > req->l - (msg->sov - msg->som))
  		len = req->l - (msg->sov - msg->som);
-@@ -266,9 +301,10 @@ struct server *get_server_ph_post(struct session *s)
+@@ -266,9 +302,10 @@ struct server *get_server_ph_post(struct session *s)
  				 * skip the equal symbol
  				 */
  				p += plen + 1;
@@ -261,7 +282,7 @@ index d228a52..2cb8d20 100644
  					if (unlikely(!HTTP_IS_TOKEN(*p))) {
  						/* if in a POST, body must be URI encoded or it's not a URI.
  						 * Do not interprete any possible binary data as a parameter.
-@@ -279,11 +315,15 @@ struct server *get_server_ph_post(struct session *s)
+@@ -279,11 +316,15 @@ struct server *get_server_ph_post(struct session *s)
  									      * This body does not contain parameters.
  									      */
  					}
@@ -274,12 +295,12 @@ index d228a52..2cb8d20 100644
 +				hash = gen_hash(px, start, (end - start));
 +
 +				if ((px->lbprm.algo & BE_LB_HASH_MOD) == BE_LB_HMOD_AVAL)
-+					hash = full_hash(hash);
++					hash = chash_hash(hash);
 +
  				if (px->lbprm.algo & BE_LB_LKUP_CHTREE)
  					return chash_get_server_hash(px, hash);
  				else
-@@ -321,6 +361,7 @@ struct server *get_server_hh(struct session *s)
+@@ -321,6 +362,7 @@ struct server *get_server_hh(struct session *s)
  	unsigned long    len;
  	struct hdr_ctx   ctx;
  	const char      *p;
@@ -287,7 +308,7 @@ index d228a52..2cb8d20 100644
  
  	/* tot_weight appears to mean srv_count */
  	if (px->lbprm.tot_weight == 0)
-@@ -345,14 +386,11 @@ struct server *get_server_hh(struct session *s)
+@@ -345,14 +387,11 @@ struct server *get_server_hh(struct session *s)
  	len = ctx.vlen;
  	p = (char *)ctx.line + ctx.val;
  	if (!px->hh_match_domain) {
@@ -304,7 +325,7 @@ index d228a52..2cb8d20 100644
  		/* special computation, use only main domain name, not tld/host
  		 * going back from the end of string, start hashing at first
  		 * dot stop at next.
-@@ -361,18 +399,23 @@ struct server *get_server_hh(struct session *s)
+@@ -361,18 +400,23 @@ struct server *get_server_hh(struct session *s)
  		 */
  		while (len) {
  			if (*p == '.') {
@@ -326,11 +347,11 @@ index d228a52..2cb8d20 100644
 +		hash = gen_hash(px, start, (end - start));
  	}
 +	if ((px->lbprm.algo & BE_LB_HASH_MOD) == BE_LB_HMOD_AVAL)
-+		hash = full_hash(hash);
++		hash = chash_hash(hash);
   hash_done:
  	if (px->lbprm.algo & BE_LB_LKUP_CHTREE)
  		return chash_get_server_hash(px, hash);
-@@ -412,12 +455,10 @@ struct server *get_server_rch(struct session *s)
+@@ -412,12 +456,10 @@ struct server *get_server_rch(struct session *s)
  	 * we will compute the hash based on this value ctx.val.
  	 */
  	len = test.len;
@@ -343,7 +364,7 @@ index d228a52..2cb8d20 100644
 +	hash = gen_hash(px, test.ptr, len);
 +
 +	if ((px->lbprm.algo & BE_LB_HASH_MOD) == BE_LB_HMOD_AVAL)
-+		hash = full_hash(hash);
++		hash = chash_hash(hash);
   hash_done:
  	if (px->lbprm.algo & BE_LB_LKUP_CHTREE)
  		return chash_get_server_hash(px, hash);
@@ -517,9 +538,18 @@ index 0000000..034685e
 +
 +
 diff --git a/src/lb_chash.c b/src/lb_chash.c
-index 09be0a1..9115a4b 100644
+index 09be0a1..73d88bb 100644
 --- a/src/lb_chash.c
 +++ b/src/lb_chash.c
+@@ -27,7 +27,7 @@
+ #include <proto/backend.h>
+ #include <proto/queue.h>
+ 
+-static inline unsigned int chash_hash(unsigned int a)
++inline unsigned int chash_hash(unsigned int a)
+ {
+ 	/* This function is one of Bob Jenkins' full avalanche hashing
+ 	 * functions, which when provides quite a good distribution for little
 @@ -292,8 +292,6 @@ struct server *chash_get_server_hash(struct proxy *p, unsigned int hash)
  	else
  		return NULL;
