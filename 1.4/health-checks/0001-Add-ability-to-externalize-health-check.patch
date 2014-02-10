@@ -1,0 +1,404 @@
+From 00a77fd5b1bd0a7fdc45ec976aeb2f59e4e4d760 Mon Sep 17 00:00:00 2001
+From: Bhaskar Maddala <maddalab@gmail.com>
+Date: Mon, 10 Feb 2014 14:02:17 -0500
+Subject: [PATCH] Add ability to externalize health check
+
+Summary:
+We add new directives to the http-check keyword
+
+The server option is used to specify an external
+health checking server to use for health checks.
+
+Example:
+    http-check server <ipv4|ipv6>
+
+The info option is used to specify a http
+header to communicate information about the server
+being checked to the external health checking server
+
+Example:
+    http-check info [header <http-header>]
+
+The default value of the header is 'X-Check-Info'
+
+This option is independent of the server directive. When
+used includes a http header in the health check request
+of the form
+
+<http-header>: <value>
+
+Finally, we add to the server directive a 'info'
+option. This value assigned to this option is passed
+to the external health checking server.
+
+Example:
+    server id <addr> [info <value>]
+
+Putting it all togeather
+
+backend bck1
+    mode http
+
+    # the host header works but wasn't the intent
+    option      httpchk   GET /health HTTP/1.1\r\nHost:\ www.hst1.com
+
+    # specify a server to use for the check
+    http-check  server chksrv1.dc.hst1.com
+
+    # request for info about the server using the default host header
+    # the following 2 lines are equivalent
+    # http-check info
+    http-check  info X-Check-Info
+
+    # pass in the info using the default
+    # the following 2 lines are equivalent
+    # server a1 a1.dc.hst1.com:80 weight 20 maxconn 5 check inter 2s
+    server a1 a1.dc.hst1.com:80 weight 20 maxconn 5 check inter 2s info a1
+
+    # this is probably a better alternative
+    server a1 a1.dc.hst1.com:80 weight 20 maxconn 5 check inter 2s info a1.dc.hst1.com
+---
+ doc/configuration.txt     | 39 ++++++++++++++++++-
+ include/common/defaults.h |  2 +
+ include/types/proxy.h     |  4 ++
+ include/types/server.h    |  2 +
+ src/cfgparse.c            | 54 ++++++++++++++++++++++++++
+ src/checks.c              | 96 +++++++++++++++++++++++++----------------------
+ 6 files changed, 150 insertions(+), 47 deletions(-)
+
+diff --git a/doc/configuration.txt b/doc/configuration.txt
+index f2043a1..440d519 100644
+--- a/doc/configuration.txt
++++ b/doc/configuration.txt
+@@ -890,6 +890,8 @@ force-persist                             -          X         X         X
+ fullconn                                  X          -         X         X
+ grace                                     X          X         X         X
+ hash-type                                 X          -         X         X
++http-check server                         X          -         X         X
++http-check info                           X          -         X         X
+ http-check disable-on-404                 X          -         X         X
+ http-check expect                         -          -         X         X
+ http-check send-state                     X          -         X         X
+@@ -2186,8 +2188,33 @@ http-check disable-on-404
+   is used with "http-check expect", then it has precedence over it so that 404
+   responses will still be considered as soft-stop.
+ 
+-  See also : "option httpchk", "http-check expect"
++  See also : "option httpchk", "http-check expect", "http-check server", 
++             "http-check info"
++             
++http-check server <ipv4|ipv6>
++  Using the "server" parameter, it becomes possible to use a different IP address
++  to send health-checks. On some servers, it may be desirable to dedicate an IP
++  address to specific component able to perform complex tests which are more
++  suitable to health-checks than the application.
++  
++  May be used in sections :   defaults | frontend | listen | backend
++                                 yes   |    no    |   yes  |   yes
++  Arguments : server
++
++  See also : "option httpchk", "http-check expect", "http-check server", 
++             "http-check info"
++             
++http-check info <header>
++  Using the "info" parameter, it becomes possible to send custom information
++  for use during health checks. The information is sent when using http checks
++  using the specified http header
++  
++  May be used in sections :   defaults | frontend | listen | backend
++                                 yes   |    no    |   yes  |   yes
++  Arguments : header
+ 
++  See also : "option httpchk", "http-check expect", "http-check server", 
++             "http-check info"
+ 
+ http-check expect [!] <match> <pattern>
+   Make HTTP health checks consider reponse contents or specific status codes
+@@ -3208,7 +3235,8 @@ option httpchk <method> <uri> <version>
+           server apache1 192.168.1.1:443 check port 80
+ 
+   See also : "option ssl-hello-chk", "option smtpchk", "option mysql-check",
+-             "http-check" and the "check", "port" and "inter" server options.
++             "http-check" and the "check", "port", "inter", "server" and 
++             "info" server options.
+ 
+ 
+ option httpclose
+@@ -5955,6 +5983,13 @@ addr <ipv4>
+   the "check" parameter is not set. See also the "port" parameter.
+ 
+   Supported in default-server: No
++  
++info <information>
++  Using the "info" parameter, it becomes possible to send information useful for
++  health-checks. On some servers, it may be desirable to include additional
++  server information to perform complex tests which are more suitable to 
++  health-checks than the application. This parameter is ignored if the "check" 
++  parameter is not set.
+ 
+ backup
+   When "backup" is present on a server line, the server is only used in load
+diff --git a/include/common/defaults.h b/include/common/defaults.h
+index 96e0f61..5a0c0aa 100644
+--- a/include/common/defaults.h
++++ b/include/common/defaults.h
+@@ -131,6 +131,8 @@
+ #define DEF_CHECK_REQ   "OPTIONS / HTTP/1.0\r\n"
+ #define DEF_SMTP_CHECK_REQ   "HELO localhost\r\n"
+ #define DEF_LDAP_CHECK_REQ   "\x30\x0c\x02\x01\x01\x60\x07\x02\x01\x03\x04\x00\x80\x00"
++#define DEF_CHECK_HOST_HDR   "X-Check-Info"
++#define DEF_CHECK_HOST_PORT  80
+ 
+ #define DEF_HANA_ONERR		HANA_ONERR_FAILCHK
+ #define DEF_HANA_ERRLIMIT	10
+diff --git a/include/types/proxy.h b/include/types/proxy.h
+index a06078a..65d1ed1 100644
+--- a/include/types/proxy.h
++++ b/include/types/proxy.h
+@@ -135,6 +135,7 @@
+ #define PR_O2_SSL3_CHK  0x00100000      /* use SSLv3 CLIENT_HELLO packets for server health */
+ #define PR_O2_FAKE_KA   0x00200000      /* pretend we do keep-alive with server eventhough we close */
+ #define PR_O2_LDAP_CHK  0x00400000      /* use LDAP check for server health */
++#define PR_O2_CHK_INFO  0x00800000		/* include info header and value in http health checks */
+ 
+ #define PR_O2_EXP_NONE  0x00000000      /* http-check : no expect rule */
+ #define PR_O2_EXP_STS   0x00800000      /* http-check expect status */
+@@ -307,6 +308,9 @@ struct proxy {
+ 	int grace;				/* grace time after stop request */
+ 	char *check_req;			/* HTTP or SSL request to use for PR_O_HTTP_CHK|PR_O_SSL3_CHK */
+ 	int check_len;				/* Length of the HTTP or SSL3 request */
++	struct sockaddr_in check_addr;		/* the address to check */
++	char *check_for_hdr_name;			/* HTTP header used to identify host being checked */
++	int check_for_hdr_name_len;			/* Length of the HTTP header */
+ 	char *expect_str;			/* http-check expected content : string or text version of the regex */
+ 	regex_t *expect_regex;			/* http-check expected content */
+ 	struct chunk errmsg[HTTP_ERR_SIZE];	/* default or customized error messages for known errors */
+diff --git a/include/types/server.h b/include/types/server.h
+index 9fbd290..9a0e2e5 100644
+--- a/include/types/server.h
++++ b/include/types/server.h
+@@ -154,6 +154,8 @@ struct server {
+ 
+ 	char *check_data;			/* storage of partial check results */
+ 	int check_data_len;			/* length of partial check results stored in check_data */
++	char *check_for_hdr_val;		 	/* http header value used for health checkes */
++	int check_for_hdr_val_len;			 /* length of the http header value */
+ 
+ 	struct {
+ 		const char *file;		/* file where the section appears */
+diff --git a/src/cfgparse.c b/src/cfgparse.c
+index 09ffcd3..1eeaa4b 100644
+--- a/src/cfgparse.c
++++ b/src/cfgparse.c
+@@ -3243,6 +3243,53 @@ stats_error_parsing:
+ 					goto out;
+ 				}
+ 			}
++			else if (!strcmp(args[1], "server")) {
++
++				/* use a external http check server instead of querying the server for health checks */
++				if (!*args[2]) {
++					Alert("parsing [%s:%d]: '%s' expects an <ipv4|ipv6> address.\n",
++						  file, linenum, args[1]);
++					err_code |= ERR_ALERT | ERR_FATAL;
++					goto out;
++				}
++
++				struct sockaddr_in *sk;
++				int port1, port2;
++
++				sk = str2sa_range(args[2], &port1, &port2);
++				if (!sk) {
++					Alert("parsing [%s:%d] : Unknown host in '%s'\n", file, linenum, args[2]);
++					err_code |= ERR_ALERT | ERR_FATAL;
++					goto out;
++				}
++
++				if (port1 != port2) {
++					Alert("parsing [%s:%d] : '%s' : port ranges and offsets are not allowed in '%s'\n",
++						  file, linenum, args[1], args[2]);
++					err_code |= ERR_ALERT | ERR_FATAL;
++					goto out;
++				}
++
++				if (!port1)
++					sk->sin_port = htons(port1);
++
++				curproxy->check_addr = *sk;
++			}
++			else if (!strcmp(args[1], "info")) {
++				curproxy->options2 |= PR_O2_CHK_INFO;
++				if (!*args[2]) { /* no argument */
++					curproxy->check_for_hdr_name = strdup(DEF_CHECK_HOST_HDR);
++					curproxy->check_for_hdr_name_len = strlen(DEF_CHECK_HOST_HDR);
++				} else if (*args[2] && !strcmp(args[2], "header")) {
++					curproxy->check_for_hdr_name = strdup(args[3]);
++					curproxy->check_for_hdr_name_len = strlen(args[3]);
++				} else {
++					Alert("parsing [%s:%d] : '%s' : expect valid http header it can be specified using 'header'\n",
++						  file, linenum, args[1]);
++					err_code |= ERR_ALERT | ERR_FATAL;
++					goto out;
++				}
++			}
+ 			else {
+ 				Alert("parsing [%s:%d] : '%s %s' only supports [!] 'status', 'string', 'rstatus', 'rstring', found '%s'.\n",
+ 				      file, linenum, args[0], args[1], ptr_arg);
+@@ -3445,6 +3492,8 @@ stats_error_parsing:
+ 			newsrv->state = SRV_RUNNING; /* early server setup */
+ 			newsrv->last_change = now.tv_sec;
+ 			newsrv->id = strdup(args[1]);
++			newsrv->check_for_hdr_val = strdup(args[1]);
++			newsrv->check_for_hdr_val_len = strlen(args[1]);
+ 
+ 			/* several ways to check the port component :
+ 			 *  - IP    => port=+0, relative
+@@ -3640,6 +3689,11 @@ stats_error_parsing:
+ 				newsrv->check_addr = *sk;
+ 				cur_arg += 2;
+ 			}
++			else if (!strcmp(args[cur_arg], "info")) {
++				newsrv->check_for_hdr_val = strdup(args[cur_arg + 1]);
++				newsrv->check_for_hdr_val_len = strlen(args[cur_arg  + 1]);
++				cur_arg += 2;
++			}
+ 			else if (!strcmp(args[cur_arg], "port")) {
+ 				newsrv->check_port = atol(args[cur_arg + 1]);
+ 				cur_arg += 2;
+diff --git a/src/checks.c b/src/checks.c
+index 021d025..3df182d 100644
+--- a/src/checks.c
++++ b/src/checks.c
+@@ -662,58 +662,64 @@ void health_adjust(struct server *s, short status) {
+ 	}
+ }
+ 
+-static int httpchk_build_status_header(struct server *s, char *buffer)
++static int httpchk_build_headers(struct server *s, char* buffer, int hlen)
+ {
+ 	int sv_state;
+ 	int ratio;
+-	int hlen = 0;
+ 	const char *srv_hlt_st[7] = { "DOWN", "DOWN %d/%d",
+ 				      "UP %d/%d", "UP",
+ 				      "NOLB %d/%d", "NOLB",
+ 				      "no check" };
+ 
+-	memcpy(buffer + hlen, "X-Haproxy-Server-State: ", 24);
+-	hlen += 24;
++	if (s->proxy->options2 & PR_O2_CHK_INFO) {
++		hlen += s->proxy->check_for_hdr_name_len + strlen(": ") + s->check_for_hdr_val_len + strlen("\r\n");
++		sprintf(buffer, "%s: %s\r\n", s->proxy->check_for_hdr_name, s->check_for_hdr_val);
++	}
+ 
+-	if (!(s->state & SRV_CHECKED))
+-		sv_state = 6; /* should obviously never happen */
+-	else if (s->state & SRV_RUNNING) {
+-		if (s->health == s->rise + s->fall - 1)
+-			sv_state = 3; /* UP */
+-		else
+-			sv_state = 2; /* going down */
++	if (s->proxy->options2 & PR_O2_CHK_SNDST) {
++		memcpy(buffer + hlen, "X-Haproxy-Server-State: ", 24);
++		hlen += 24;
+ 
+-		if (s->state & SRV_GOINGDOWN)
+-			sv_state += 2;
+-	} else {
+-		if (s->health)
+-			sv_state = 1; /* going up */
+-		else
+-			sv_state = 0; /* DOWN */
+-	}
++		if (!(s->state & SRV_CHECKED))
++			sv_state = 6; /* should obviously never happen */
++		else if (s->state & SRV_RUNNING) {
++			if (s->health == s->rise + s->fall - 1)
++				sv_state = 3; /* UP */
++			else
++				sv_state = 2; /* going down */
+ 
+-	hlen += sprintf(buffer + hlen,
+-			     srv_hlt_st[sv_state],
+-			     (s->state & SRV_RUNNING) ? (s->health - s->rise + 1) : (s->health),
+-			     (s->state & SRV_RUNNING) ? (s->fall) : (s->rise));
+-
+-	hlen += sprintf(buffer + hlen, "; name=%s/%s; node=%s; weight=%d/%d; scur=%d/%d; qcur=%d",
+-			     s->proxy->id, s->id,
+-			     global.node,
+-			     (s->eweight * s->proxy->lbprm.wmult + s->proxy->lbprm.wdiv - 1) / s->proxy->lbprm.wdiv,
+-			     (s->proxy->lbprm.tot_weight * s->proxy->lbprm.wmult + s->proxy->lbprm.wdiv - 1) / s->proxy->lbprm.wdiv,
+-			     s->cur_sess, s->proxy->beconn - s->proxy->nbpend,
+-			     s->nbpend);
+-
+-	if ((s->state & SRV_WARMINGUP) &&
+-	    now.tv_sec < s->last_change + s->slowstart &&
+-	    now.tv_sec >= s->last_change) {
+-		ratio = MAX(1, 100 * (now.tv_sec - s->last_change) / s->slowstart);
+-		hlen += sprintf(buffer + hlen, "; throttle=%d%%", ratio);
+-	}
++			if (s->state & SRV_GOINGDOWN)
++				sv_state += 2;
++		} else {
++			if (s->health)
++				sv_state = 1; /* going up */
++			else
++				sv_state = 0; /* DOWN */
++		}
+ 
+-	buffer[hlen++] = '\r';
+-	buffer[hlen++] = '\n';
++		hlen += sprintf(buffer + hlen,
++					 srv_hlt_st[sv_state],
++					 (s->state & SRV_RUNNING) ? (s->health - s->rise + 1) : (s->health),
++					 (s->state & SRV_RUNNING) ? (s->fall) : (s->rise));
++
++		hlen += sprintf(buffer + hlen, "; name=%s/%s; node=%s; weight=%d/%d; scur=%d/%d; qcur=%d",
++					 s->proxy->id, s->id,
++					 global.node,
++					 (s->eweight * s->proxy->lbprm.wmult + s->proxy->lbprm.wdiv - 1) / s->proxy->lbprm.wdiv,
++					 (s->proxy->lbprm.tot_weight * s->proxy->lbprm.wmult + s->proxy->lbprm.wdiv - 1) / s->proxy->lbprm.wdiv,
++					 s->cur_sess, s->proxy->beconn - s->proxy->nbpend,
++					 s->nbpend);
++
++		if ((s->state & SRV_WARMINGUP) &&
++			now.tv_sec < s->last_change + s->slowstart &&
++			now.tv_sec >= s->last_change) {
++			ratio = MAX(1, 100 * (now.tv_sec - s->last_change) / s->slowstart);
++			hlen += sprintf(buffer + hlen, "; throttle=%d%%", ratio);
++		}
++
++		buffer[hlen++] = '\r';
++		buffer[hlen++] = '\n';
++	}
+ 
+ 	return hlen;
+ }
+@@ -731,6 +737,7 @@ static int event_srv_chk_w(int fd)
+ 	__label__ out_wakeup, out_nowake, out_poll, out_error;
+ 	struct task *t = fdtab[fd].owner;
+ 	struct server *s = t->context;
++	int hlen = 0;
+ 
+ 	//fprintf(stderr, "event_srv_chk_w, state=%ld\n", unlikely(fdtab[fd].state));
+ 	if (unlikely(fdtab[fd].state == FD_STERROR || (fdtab[fd].ev & FD_POLL_ERR))) {
+@@ -769,12 +776,11 @@ static int event_srv_chk_w(int fd)
+ 			else if (s->proxy->options & PR_O_HTTP_CHK) {
+ 				memcpy(trash, check_req, check_len);
+ 
+-				if (s->proxy->options2 & PR_O2_CHK_SNDST)
+-					check_len += httpchk_build_status_header(s, trash + check_len);
++				hlen = httpchk_build_headers(s, trash, check_len);
+ 
+-				trash[check_len++] = '\r';
+-				trash[check_len++] = '\n';
+-				trash[check_len] = '\0';
++				trash[hlen++] = '\r';
++				trash[hlen++] = '\n';
++				trash[hlen] = '\0';
+ 				check_req = trash;
+ 			}
+ 
+-- 
+1.8.3.4 (Apple Git-47)
+
