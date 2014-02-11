@@ -1,4 +1,4 @@
-From 00a77fd5b1bd0a7fdc45ec976aeb2f59e4e4d760 Mon Sep 17 00:00:00 2001
+From 7fa389a491dd582a618e944e5a16d1b66f704adb Mon Sep 17 00:00:00 2001
 From: Bhaskar Maddala <maddalab@gmail.com>
 Date: Mon, 10 Feb 2014 14:02:17 -0500
 Subject: [PATCH] Add ability to externalize health check
@@ -63,8 +63,8 @@ backend bck1
  include/types/proxy.h     |  4 ++
  include/types/server.h    |  2 +
  src/cfgparse.c            | 54 ++++++++++++++++++++++++++
- src/checks.c              | 96 +++++++++++++++++++++++++----------------------
- 6 files changed, 150 insertions(+), 47 deletions(-)
+ src/checks.c              | 97 +++++++++++++++++++++++++----------------------
+ 6 files changed, 151 insertions(+), 47 deletions(-)
 
 diff --git a/doc/configuration.txt b/doc/configuration.txt
 index f2043a1..440d519 100644
@@ -266,7 +266,7 @@ index 09ffcd3..1eeaa4b 100644
  				newsrv->check_port = atol(args[cur_arg + 1]);
  				cur_arg += 2;
 diff --git a/src/checks.c b/src/checks.c
-index 021d025..3df182d 100644
+index 021d025..1e06c98 100644
 --- a/src/checks.c
 +++ b/src/checks.c
 @@ -662,58 +662,64 @@ void health_adjust(struct server *s, short status) {
@@ -382,7 +382,7 @@ index 021d025..3df182d 100644
  
  	//fprintf(stderr, "event_srv_chk_w, state=%ld\n", unlikely(fdtab[fd].state));
  	if (unlikely(fdtab[fd].state == FD_STERROR || (fdtab[fd].ev & FD_POLL_ERR))) {
-@@ -769,12 +776,11 @@ static int event_srv_chk_w(int fd)
+@@ -769,12 +776,12 @@ static int event_srv_chk_w(int fd)
  			else if (s->proxy->options & PR_O_HTTP_CHK) {
  				memcpy(trash, check_req, check_len);
  
@@ -396,6 +396,7 @@ index 021d025..3df182d 100644
 +				trash[hlen++] = '\r';
 +				trash[hlen++] = '\n';
 +				trash[hlen] = '\0';
++				check_len = hlen;
  				check_req = trash;
  			}
  
