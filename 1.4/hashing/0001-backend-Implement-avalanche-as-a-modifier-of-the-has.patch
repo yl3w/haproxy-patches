@@ -1,7 +1,7 @@
 From e6bb17111817bf7e02ffb247fbe03601b652b978 Mon Sep 17 00:00:00 2001
 From: Bhaskar Maddala <bhaskar@tumblr.com>
 Date: Mon, 10 Feb 2014 14:57:28 -0500
-Subject: [PATCH 1/2] backend: Implement avalanche as a modifier of the hashing
+Subject: [PATCH] backend: Implement avalanche as a modifier of the hashing
  functions.
 
 Summary:

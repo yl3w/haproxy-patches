@@ -1,4 +1,4 @@
-From 7fa389a491dd582a618e944e5a16d1b66f704adb Mon Sep 17 00:00:00 2001
+From 3f5624b6086df5381cb92f8ebfe216970731de1b Mon Sep 17 00:00:00 2001
 From: Bhaskar Maddala <maddalab@gmail.com>
 Date: Mon, 10 Feb 2014 14:02:17 -0500
 Subject: [PATCH] Add ability to externalize health check
@@ -62,9 +62,9 @@ backend bck1
  include/common/defaults.h |  2 +
  include/types/proxy.h     |  4 ++
  include/types/server.h    |  2 +
- src/cfgparse.c            | 54 ++++++++++++++++++++++++++
+ src/cfgparse.c            | 55 ++++++++++++++++++++++++++-
  src/checks.c              | 97 +++++++++++++++++++++++++----------------------
- 6 files changed, 151 insertions(+), 47 deletions(-)
+ 6 files changed, 151 insertions(+), 48 deletions(-)
 
 diff --git a/doc/configuration.txt b/doc/configuration.txt
 index f2043a1..440d519 100644
@@ -187,64 +187,66 @@ index 9fbd290..9a0e2e5 100644
  	struct {
  		const char *file;		/* file where the section appears */
 diff --git a/src/cfgparse.c b/src/cfgparse.c
-index 09ffcd3..1eeaa4b 100644
+index 09ffcd3..3382e02 100644
 --- a/src/cfgparse.c
 +++ b/src/cfgparse.c
-@@ -3243,6 +3243,53 @@ stats_error_parsing:
- 					goto out;
- 				}
+@@ -3250,8 +3250,54 @@ stats_error_parsing:
+ 				goto out;
  			}
-+			else if (!strcmp(args[1], "server")) {
-+
-+				/* use a external http check server instead of querying the server for health checks */
-+				if (!*args[2]) {
-+					Alert("parsing [%s:%d]: '%s' expects an <ipv4|ipv6> address.\n",
-+						  file, linenum, args[1]);
-+					err_code |= ERR_ALERT | ERR_FATAL;
-+					goto out;
-+				}
-+
-+				struct sockaddr_in *sk;
-+				int port1, port2;
-+
-+				sk = str2sa_range(args[2], &port1, &port2);
-+				if (!sk) {
-+					Alert("parsing [%s:%d] : Unknown host in '%s'\n", file, linenum, args[2]);
-+					err_code |= ERR_ALERT | ERR_FATAL;
-+					goto out;
-+				}
-+
-+				if (port1 != port2) {
-+					Alert("parsing [%s:%d] : '%s' : port ranges and offsets are not allowed in '%s'\n",
-+						  file, linenum, args[1], args[2]);
-+					err_code |= ERR_ALERT | ERR_FATAL;
-+					goto out;
-+				}
-+
-+				if (!port1)
-+					sk->sin_port = htons(port1);
-+
-+				curproxy->check_addr = *sk;
+ 		}
++		else if (!strcmp(args[1], "server")) {
++			/* use a external http check server instead of querying the server for health checks */
++			if (!*args[2]) {
++				Alert("parsing [%s:%d]: '%s' expects an <ipv4|ipv6> address.\n",
++					  file, linenum, args[1]);
++				err_code |= ERR_ALERT | ERR_FATAL;
++				goto out;
 +			}
-+			else if (!strcmp(args[1], "info")) {
-+				curproxy->options2 |= PR_O2_CHK_INFO;
-+				if (!*args[2]) { /* no argument */
-+					curproxy->check_for_hdr_name = strdup(DEF_CHECK_HOST_HDR);
-+					curproxy->check_for_hdr_name_len = strlen(DEF_CHECK_HOST_HDR);
-+				} else if (*args[2] && !strcmp(args[2], "header")) {
-+					curproxy->check_for_hdr_name = strdup(args[3]);
-+					curproxy->check_for_hdr_name_len = strlen(args[3]);
-+				} else {
-+					Alert("parsing [%s:%d] : '%s' : expect valid http header it can be specified using 'header'\n",
-+						  file, linenum, args[1]);
-+					err_code |= ERR_ALERT | ERR_FATAL;
-+					goto out;
-+				}
++
++			struct sockaddr_in *sk;
++			int port1, port2;
++
++			sk = str2sa_range(args[2], &port1, &port2);
++			if (!sk) {
++				Alert("parsing [%s:%d] : Unknown host in '%s'\n", file, linenum, args[2]);
++				err_code |= ERR_ALERT | ERR_FATAL;
++				goto out;
 +			}
- 			else {
- 				Alert("parsing [%s:%d] : '%s %s' only supports [!] 'status', 'string', 'rstatus', 'rstring', found '%s'.\n",
- 				      file, linenum, args[0], args[1], ptr_arg);
-@@ -3445,6 +3492,8 @@ stats_error_parsing:
++
++			if (port1 != port2) {
++				Alert("parsing [%s:%d] : '%s' : port ranges and offsets are not allowed in '%s'\n",
++					  file, linenum, args[1], args[2]);
++				err_code |= ERR_ALERT | ERR_FATAL;
++				goto out;
++			}
++
++			if (!port1)
++				sk->sin_port = htons(port1);
++
++			curproxy->check_addr = *sk;
++		}
++		else if (!strcmp(args[1], "info")) {
++			curproxy->options2 |= PR_O2_CHK_INFO;
++			if (!*args[2]) { /* no argument */
++				curproxy->check_for_hdr_name = strdup(DEF_CHECK_HOST_HDR);
++				curproxy->check_for_hdr_name_len = strlen(DEF_CHECK_HOST_HDR);
++			} else if (*args[2] && !strcmp(args[2], "header")) {
++				curproxy->check_for_hdr_name = strdup(args[3]);
++				curproxy->check_for_hdr_name_len = strlen(args[3]);
++			} else {
++				Alert("parsing [%s:%d] : '%s' : expect valid http header it can be specified using 'header'\n",
++					  file, linenum, args[1]);
++				err_code |= ERR_ALERT | ERR_FATAL;
++				goto out;
++			}
++		}
+ 		else {
+-			Alert("parsing [%s:%d] : '%s' only supports 'disable-on-404', 'send-state', 'expect'.\n", file, linenum, args[0]);
++			Alert("parsing [%s:%d] : '%s' only supports 'disable-on-404', 'send-state', 'expect', 'server', 'info'.\n", file, linenum, args[0]);
+ 			err_code |= ERR_ALERT | ERR_FATAL;
+ 			goto out;
+ 		}
+@@ -3445,6 +3491,8 @@ stats_error_parsing:
  			newsrv->state = SRV_RUNNING; /* early server setup */
  			newsrv->last_change = now.tv_sec;
  			newsrv->id = strdup(args[1]);
@@ -253,7 +255,7 @@ index 09ffcd3..1eeaa4b 100644
  
  			/* several ways to check the port component :
  			 *  - IP    => port=+0, relative
-@@ -3640,6 +3689,11 @@ stats_error_parsing:
+@@ -3640,6 +3688,11 @@ stats_error_parsing:
  				newsrv->check_addr = *sk;
  				cur_arg += 2;
  			}
