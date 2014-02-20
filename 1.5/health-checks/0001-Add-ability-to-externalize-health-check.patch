@@ -1,4 +1,4 @@
-From 6dabd55c401f537cb57e0b670c6d6b4221053199 Mon Sep 17 00:00:00 2001
+From 1be0b98fcf9180091170d8d3bb108936cf2dc9db Mon Sep 17 00:00:00 2001
 From: Bhaskar Maddala <maddalab@gmail.com>
 Date: Fri, 7 Feb 2014 13:55:35 -0500
 Subject: [PATCH] Add ability to externalize health check
@@ -58,16 +58,16 @@ backend bck1
     # this is probably a better alternative
     server a1 a1.dc.hst1.com:80 weight 20 maxconn 5 check inter 2s info a1.dc.hst1.com
 ---
- doc/configuration.txt     |   41 +++++++++++++++--
- include/common/defaults.h |    2 +
- include/types/proxy.h     |    8 +++-
- include/types/server.h    |    3 ++
- src/cfgparse.c            |  108 ++++++++++++++++++++++++++++++++++++-------
- src/checks.c              |  112 ++++++++++++++++++++++++++-------------------
- 6 files changed, 205 insertions(+), 69 deletions(-)
+ doc/configuration.txt     |  41 +++++++++++++++--
+ include/common/defaults.h |   1 +
+ include/types/proxy.h     |   8 +++-
+ include/types/server.h    |   3 ++
+ src/cfgparse.c            | 114 ++++++++++++++++++++++++++++++++++++++--------
+ src/checks.c              | 112 ++++++++++++++++++++++++++-------------------
+ 6 files changed, 209 insertions(+), 70 deletions(-)
 
 diff --git a/doc/configuration.txt b/doc/configuration.txt
-index 95f8eec..f719fb1 100644
+index 6d4df7d..2a69b2a 100644
 --- a/doc/configuration.txt
 +++ b/doc/configuration.txt
 @@ -1215,6 +1215,8 @@ force-persist                             -          X         X         X
@@ -142,15 +142,14 @@ index 95f8eec..f719fb1 100644
  agent-check
    Enable an auxiliary agent check which is run independently of a regular
 diff --git a/include/common/defaults.h b/include/common/defaults.h
-index f765e90..17bc5d2 100644
+index f765e90..07e74b7 100644
 --- a/include/common/defaults.h
 +++ b/include/common/defaults.h
-@@ -131,6 +131,8 @@
+@@ -131,6 +131,7 @@
  #define DEF_SMTP_CHECK_REQ   "HELO localhost\r\n"
  #define DEF_LDAP_CHECK_REQ   "\x30\x0c\x02\x01\x01\x60\x07\x02\x01\x03\x04\x00\x80\x00"
  #define DEF_REDIS_CHECK_REQ  "*1\r\n$4\r\nPING\r\n"
 +#define DEF_CHECK_HOST_HDR   "X-Check-Info"
-+#define DEF_CHECK_HOST_PORT  80
  
  #define DEF_HANA_ONERR		HANA_ONERR_FAILCHK
  #define DEF_HANA_ERRLIMIT	10
@@ -195,7 +194,7 @@ index 54ab813..ef56a49 100644
  	struct check agent;                     /* agent specific configuration */
  
 diff --git a/src/cfgparse.c b/src/cfgparse.c
-index 9993c61..8a75c71 100644
+index 9993c61..9d213a5 100644
 --- a/src/cfgparse.c
 +++ b/src/cfgparse.c
 @@ -1841,12 +1841,19 @@ int cfg_parse_listen(const char *file, int linenum, char **args, int kwm)
@@ -352,8 +351,8 @@ index 9993c61..8a75c71 100644
 +				goto out;
 +			}
 +
-+			if (!port1)
-+				set_host_port(sk, DEF_CHECK_HOST_PORT);
++			if (port1)
++				set_host_port(sk, port1);
 +
 +			curproxy->check_addr = *sk;
 +		}
@@ -399,7 +398,14 @@ index 9993c61..8a75c71 100644
  			else if (!strcmp(args[cur_arg], "port")) {
  				newsrv->check.port = atol(args[cur_arg + 1]);
  				cur_arg += 2;
-@@ -5258,6 +5331,7 @@ stats_error_parsing:
+@@ -5252,16 +5325,21 @@ stats_error_parsing:
+ 			 * same as for the production traffic. Otherwise we use raw_sock by
+ 			 * default, unless one is specified.
+ 			 */
+-			if (!newsrv->check.port && !is_addr(&newsrv->check_common.addr)) {
++			if (!newsrv->check.port && !is_addr(&newsrv->check_common.addr) && !is_addr(&curproxy->check_addr)) {
+ #ifdef USE_OPENSSL
+ 				newsrv->check.use_ssl |= (newsrv->use_ssl || (newsrv->proxy->options & PR_O_TCPCHK_SSL));
  #endif
  				newsrv->check.send_proxy |= (newsrv->state & SRV_SEND_PROXY);
  			}
@@ -407,7 +413,15 @@ index 9993c61..8a75c71 100644
  			/* try to get the port from check_core.addr if check.port not set */
  			if (!newsrv->check.port)
  				newsrv->check.port = get_host_port(&newsrv->check_common.addr);
-@@ -7078,9 +7152,9 @@ out_uri_auth_compat:
+ 
++			/* try to set he port from proxy check address if check.port not set */
++			if (!newsrv->check.port)
++				newsrv->check.port = get_host_port(&curproxy->check_addr);
++
+ 			if (!newsrv->check.port)
+ 				newsrv->check.port = realport; /* by default */
+ 
+@@ -7078,9 +7156,9 @@ out_uri_auth_compat:
  		}
  
  		if ((curproxy->options2 & PR_O2_CHK_ANY) == PR_O2_SSL3_CHK) {
@@ -421,7 +435,7 @@ index 9993c61..8a75c71 100644
  
  		/* ensure that cookie capture length is not too large */
 diff --git a/src/checks.c b/src/checks.c
-index c3051aa..c559307 100644
+index c9a531f..a6fafad 100644
 --- a/src/checks.c
 +++ b/src/checks.c
 @@ -733,58 +733,65 @@ void __health_adjust(struct server *s, short status)
@@ -539,7 +553,7 @@ index c3051aa..c559307 100644
  			if (*(check->bi->data + 4) != '\xff') {
  				/* We set the MySQL Version in description for information purpose
  				 * FIXME : it can be cool to use MySQL Version for other purpose,
-@@ -1505,6 +1512,7 @@ static struct task *process_chk(struct task *t)
+@@ -1512,6 +1519,7 @@ static struct task *process_chk(struct task *t)
  	int rv;
  	int ret;
  	int expired = tick_is_expired(t->expire, now_ms);
@@ -547,7 +561,7 @@ index c3051aa..c559307 100644
  
  	if (!(check->state & CHK_ST_INPROGRESS)) {
  		/* no check currently running */
-@@ -1539,7 +1547,7 @@ static struct task *process_chk(struct task *t)
+@@ -1546,7 +1554,7 @@ static struct task *process_chk(struct task *t)
  		 * its own strings.
  		 */
  		if (check->type && check->type != PR_O2_TCPCHK_CHK && !(check->state & CHK_ST_AGENT)) {
@@ -556,7 +570,7 @@ index c3051aa..c559307 100644
  
  			/* we want to check if this host replies to HTTP or SSLv3 requests
  			 * so we'll send the request, and won't wake the checker up now.
-@@ -1550,8 +1558,13 @@ static struct task *process_chk(struct task *t)
+@@ -1557,8 +1565,13 @@ static struct task *process_chk(struct task *t)
  				memcpy(check->bo->data + 11, &gmt_time, 4);
  			}
  			else if ((check->type) == PR_O2_HTTP_CHK) {
@@ -572,7 +586,7 @@ index c3051aa..c559307 100644
  				bo_putstr(check->bo, "\r\n");
  				*check->bo->p = '\0'; /* to make gdb output easier to read */
  			}
-@@ -1569,9 +1582,14 @@ static struct task *process_chk(struct task *t)
+@@ -1576,9 +1589,14 @@ static struct task *process_chk(struct task *t)
  		if (is_addr(&s->check_common.addr))
  			/* we'll connect to the check addr specified on the server */
  			conn->addr.to = s->check_common.addr;
@@ -591,5 +605,5 @@ index c3051aa..c559307 100644
  		if (check->port) {
  			set_host_port(&conn->addr.to, check->port);
 -- 
-1.7.10.4
+1.8.3.4 (Apple Git-47)
 
