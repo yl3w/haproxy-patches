@@ -1,4 +1,4 @@
-From 0475d6884e33caaa9a62e7ec2f949ad0b5084c89 Mon Sep 17 00:00:00 2001
+From 82fbfea7aa45d30696a97eca62c126892bb188d4 Mon Sep 17 00:00:00 2001
 From: Bhaskar <bhaskar@tumblr.com>
 Date: Tue, 25 Feb 2014 14:49:01 -0500
 Subject: [PATCH 2/2] Add ability to externalize health check
@@ -284,7 +284,7 @@ index dbb7d28..6d134fb 100644
  				newsrv->check_port = realport; /* by default */
  			if (!newsrv->check_port) {
 diff --git a/src/checks.c b/src/checks.c
-index 021d025..e423dd3 100644
+index 021d025..4f7dbd4 100644
 --- a/src/checks.c
 +++ b/src/checks.c
 @@ -662,7 +662,7 @@ void health_adjust(struct server *s, short status) {
@@ -407,7 +407,7 @@ index 021d025..e423dd3 100644
 -					sa = s->addr;
 -
 -				/* we'll connect to the check port on the server */
-+					if ((s->proxy->options & PR_O_HTTP_CHK) == PR_O_HTTP_CHK && &s->proxy->check_addr.sin_addr.s_addr)
++					if ((s->proxy->options & PR_O_HTTP_CHK) && s->proxy->check_addr.sin_addr.s_addr)
 +						/* we will connect to the check addr specified on the proxy, only http checks*/
 +						sa = s->proxy->check_addr;
 +					else
