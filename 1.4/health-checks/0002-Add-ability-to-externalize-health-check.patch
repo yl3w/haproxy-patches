@@ -1,6 +1,6 @@
-From dd9cc1c5f155e84aa0ff9e1d6b50a97fb21c4b12 Mon Sep 17 00:00:00 2001
-From: Bhaskar Maddala <maddalab@gmail.com>
-Date: Mon, 10 Feb 2014 14:02:17 -0500
+From 0475d6884e33caaa9a62e7ec2f949ad0b5084c89 Mon Sep 17 00:00:00 2001
+From: Bhaskar <bhaskar@tumblr.com>
+Date: Tue, 25 Feb 2014 14:49:01 -0500
 Subject: [PATCH 2/2] Add ability to externalize health check
 
 Summary:
@@ -40,15 +40,15 @@ backend bck1
     mode http
 
     # the host header works but wasn't the intent
-    option      httpchk   GET /health HTTP/1.1\r\nHost:\ www.hst1.com
+    option httpchk GET /health HTTP/1.1\r\nHost:\ www.hst1.com
 
     # specify a server to use for the check
-    http-check  server chksrv1.dc.hst1.com
+    http-check server chksrv1.dc.hst1.com
 
     # request for info about the server using the default host header
     # the following 2 lines are equivalent
     # http-check info
-    http-check  info X-Check-Info
+    http-check info X-Check-Info
 
     # pass in the info using the default
     # the following 2 lines are equivalent
@@ -58,13 +58,13 @@ backend bck1
     # this is probably a better alternative
     server a1 a1.dc.hst1.com:80 weight 20 maxconn 5 check inter 2s info a1.dc.hst1.com
 ---
- doc/configuration.txt     | 39 ++++++++++++++++++-
- include/common/defaults.h |  2 +
- include/types/proxy.h     |  4 ++
- include/types/server.h    |  2 +
- src/cfgparse.c            | 55 ++++++++++++++++++++++++++-
- src/checks.c              | 97 +++++++++++++++++++++++++----------------------
- 6 files changed, 151 insertions(+), 48 deletions(-)
+ doc/configuration.txt     |   39 +++++++++++++++++-
+ include/common/defaults.h |    1 +
+ include/types/proxy.h     |    6 ++-
+ include/types/server.h    |    2 +
+ src/cfgparse.c            |   60 ++++++++++++++++++++++++++-
+ src/checks.c              |  100 +++++++++++++++++++++++++--------------------
+ 6 files changed, 159 insertions(+), 49 deletions(-)
 
 diff --git a/doc/configuration.txt b/doc/configuration.txt
 index f2043a1..440d519 100644
@@ -139,30 +139,31 @@ index f2043a1..440d519 100644
  backup
    When "backup" is present on a server line, the server is only used in load
 diff --git a/include/common/defaults.h b/include/common/defaults.h
-index 96e0f61..5a0c0aa 100644
+index 96e0f61..d4b1cce 100644
 --- a/include/common/defaults.h
 +++ b/include/common/defaults.h
-@@ -131,6 +131,8 @@
+@@ -131,6 +131,7 @@
  #define DEF_CHECK_REQ   "OPTIONS / HTTP/1.0\r\n"
  #define DEF_SMTP_CHECK_REQ   "HELO localhost\r\n"
  #define DEF_LDAP_CHECK_REQ   "\x30\x0c\x02\x01\x01\x60\x07\x02\x01\x03\x04\x00\x80\x00"
 +#define DEF_CHECK_HOST_HDR   "X-Check-Info"
-+#define DEF_CHECK_HOST_PORT  80
  
  #define DEF_HANA_ONERR		HANA_ONERR_FAILCHK
  #define DEF_HANA_ERRLIMIT	10
 diff --git a/include/types/proxy.h b/include/types/proxy.h
-index a06078a..65d1ed1 100644
+index a06078a..42310d3 100644
 --- a/include/types/proxy.h
 +++ b/include/types/proxy.h
-@@ -135,6 +135,7 @@
- #define PR_O2_SSL3_CHK  0x00100000      /* use SSLv3 CLIENT_HELLO packets for server health */
- #define PR_O2_FAKE_KA   0x00200000      /* pretend we do keep-alive with server eventhough we close */
- #define PR_O2_LDAP_CHK  0x00400000      /* use LDAP check for server health */
-+#define PR_O2_CHK_INFO  0x00800000		/* include info header and value in http health checks */
- 
- #define PR_O2_EXP_NONE  0x00000000      /* http-check : no expect rule */
- #define PR_O2_EXP_STS   0x00800000      /* http-check expect status */
+@@ -143,7 +143,8 @@
+ #define PR_O2_EXP_RSTR  0x02000000      /* http-check expect rstring */
+ #define PR_O2_EXP_TYPE  0x03800000      /* mask for http-check expect type */
+ #define PR_O2_EXP_INV   0x04000000      /* http-check expect !<rule> */
+-/* unused: 0x08000000, 0x10000000 */
++#define PR_O2_CHK_INFO  0x08000000	/* include info header and value in http health checks */
++/* unused: 0x10000000 */
+ #define PR_O2_FF_ALWAYS 0x20000000      /* always set x-forwarded-for */
+ #define PR_O2_NODELAY   0x40000000      /* fully interactive mode, never delay outgoing data */
+ /* end of proxy->options2 */
 @@ -307,6 +308,9 @@ struct proxy {
  	int grace;				/* grace time after stop request */
  	char *check_req;			/* HTTP or SSL request to use for PR_O_HTTP_CHK|PR_O_SSL3_CHK */
@@ -187,7 +188,7 @@ index 9fbd290..9a0e2e5 100644
  	struct {
  		const char *file;		/* file where the section appears */
 diff --git a/src/cfgparse.c b/src/cfgparse.c
-index dbb7d28..bcdc4f4 100644
+index dbb7d28..6d134fb 100644
 --- a/src/cfgparse.c
 +++ b/src/cfgparse.c
 @@ -3250,8 +3250,54 @@ stats_error_parsing:
@@ -267,30 +268,42 @@ index dbb7d28..bcdc4f4 100644
  			else if (!strcmp(args[cur_arg], "port")) {
  				newsrv->check_port = atol(args[cur_arg + 1]);
  				cur_arg += 2;
+@@ -3994,9 +4047,14 @@ stats_error_parsing:
+ 				goto out;
+ 			}
+ 
++			/* try to get the port from check_addr "addr" if check.port not set */
+ 			if (!newsrv->check_port && newsrv->check_addr.sin_port)
+ 				newsrv->check_port = htons(newsrv->check_addr.sin_port);
+ 
++			/* try to set the port from proxy check address if check.port not set */
++			if (!newsrv->check_port && curproxy->check_addr.sin_port)
++				newsrv->check_port = htons(curproxy->check_addr.sin_port);
++
+ 			if (!newsrv->check_port && !(newsrv->state & SRV_MAPPORTS))
+ 				newsrv->check_port = realport; /* by default */
+ 			if (!newsrv->check_port) {
 diff --git a/src/checks.c b/src/checks.c
-index 021d025..1e06c98 100644
+index 021d025..e423dd3 100644
 --- a/src/checks.c
 +++ b/src/checks.c
-@@ -662,58 +662,64 @@ void health_adjust(struct server *s, short status) {
+@@ -662,7 +662,7 @@ void health_adjust(struct server *s, short status) {
  	}
  }
  
 -static int httpchk_build_status_header(struct server *s, char *buffer)
-+static int httpchk_build_headers(struct server *s, char* buffer, int hlen)
++static int httpchk_build_headers(struct server *s, char* buffer)
  {
  	int sv_state;
  	int ratio;
--	int hlen = 0;
- 	const char *srv_hlt_st[7] = { "DOWN", "DOWN %d/%d",
- 				      "UP %d/%d", "UP",
+@@ -672,48 +672,54 @@ static int httpchk_build_status_header(struct server *s, char *buffer)
  				      "NOLB %d/%d", "NOLB",
  				      "no check" };
  
 -	memcpy(buffer + hlen, "X-Haproxy-Server-State: ", 24);
 -	hlen += 24;
 +	if (s->proxy->options2 & PR_O2_CHK_INFO) {
-+		hlen += s->proxy->check_for_hdr_name_len + strlen(": ") + s->check_for_hdr_val_len + strlen("\r\n");
-+		sprintf(buffer, "%s: %s\r\n", s->proxy->check_for_hdr_name, s->check_for_hdr_val);
++		hlen += sprintf(buffer, "%s: %s\r\n", s->proxy->check_for_hdr_name, s->check_for_hdr_val);
 +	}
  
 -	if (!(s->state & SRV_CHECKED))
@@ -347,9 +360,7 @@ index 021d025..1e06c98 100644
 +			else
 +				sv_state = 0; /* DOWN */
 +		}
- 
--	buffer[hlen++] = '\r';
--	buffer[hlen++] = '\n';
++
 +		hlen += sprintf(buffer + hlen,
 +					 srv_hlt_st[sv_state],
 +					 (s->state & SRV_RUNNING) ? (s->health - s->rise + 1) : (s->health),
@@ -369,39 +380,45 @@ index 021d025..1e06c98 100644
 +			ratio = MAX(1, 100 * (now.tv_sec - s->last_change) / s->slowstart);
 +			hlen += sprintf(buffer + hlen, "; throttle=%d%%", ratio);
 +		}
-+
+ 
+-	buffer[hlen++] = '\r';
+-	buffer[hlen++] = '\n';
 +		buffer[hlen++] = '\r';
 +		buffer[hlen++] = '\n';
 +	}
  
  	return hlen;
  }
-@@ -731,6 +737,7 @@ static int event_srv_chk_w(int fd)
- 	__label__ out_wakeup, out_nowake, out_poll, out_error;
- 	struct task *t = fdtab[fd].owner;
- 	struct server *s = t->context;
-+	int hlen = 0;
- 
- 	//fprintf(stderr, "event_srv_chk_w, state=%ld\n", unlikely(fdtab[fd].state));
- 	if (unlikely(fdtab[fd].state == FD_STERROR || (fdtab[fd].ev & FD_POLL_ERR))) {
-@@ -769,12 +776,12 @@ static int event_srv_chk_w(int fd)
+@@ -769,8 +775,7 @@ static int event_srv_chk_w(int fd)
  			else if (s->proxy->options & PR_O_HTTP_CHK) {
  				memcpy(trash, check_req, check_len);
  
 -				if (s->proxy->options2 & PR_O2_CHK_SNDST)
 -					check_len += httpchk_build_status_header(s, trash + check_len);
-+				hlen = httpchk_build_headers(s, trash, check_len);
++				check_len += httpchk_build_headers(s, trash + check_len);
  
--				trash[check_len++] = '\r';
--				trash[check_len++] = '\n';
--				trash[check_len] = '\0';
-+				trash[hlen++] = '\r';
-+				trash[hlen++] = '\n';
-+				trash[hlen] = '\0';
-+				check_len = hlen;
- 				check_req = trash;
- 			}
+ 				trash[check_len++] = '\r';
+ 				trash[check_len++] = '\n';
+@@ -1281,10 +1286,15 @@ struct task *process_chk(struct task *t)
+ 					/* we'll connect to the check addr specified on the server */
+ 					sa = s->check_addr;
+ 				else
+-					/* we'll connect to the addr on the server */
+-					sa = s->addr;
+-
+-				/* we'll connect to the check port on the server */
++					if ((s->proxy->options & PR_O_HTTP_CHK) == PR_O_HTTP_CHK && &s->proxy->check_addr.sin_addr.s_addr)
++						/* we will connect to the check addr specified on the proxy, only http checks*/
++						sa = s->proxy->check_addr;
++					else
++						/* we'll connect to the addr on the server */
++						sa = s->addr;
++
++				/* we'll connect to the check port on the server code to select the right port is done during
++ 				 * parsing of the configuration */
+ 				sa.sin_port = htons(s->check_port);
  
+ 				/* allow specific binding :
 -- 
-1.8.3.4 (Apple Git-47)
+1.7.4.4
 
