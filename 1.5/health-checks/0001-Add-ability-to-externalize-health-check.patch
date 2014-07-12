@@ -1,4 +1,4 @@
-From 216a5e24d486bc7f3a74e6b8efd24cb4569c84ea Mon Sep 17 00:00:00 2001
+From 7afd43d7926a684579a241733ab22435a338c48f Mon Sep 17 00:00:00 2001
 From: Bhaskar Maddala <bhaskar@tumblr.com>
 Date: Fri, 11 Jul 2014 13:35:21 -0400
 Subject: [PATCH] Add ability to externalize health check
@@ -529,7 +529,7 @@ index 762978a..14d4486 100644
  
  		if (!LIST_ISEMPTY(&curproxy->tcpcheck_rules) &&
 diff --git a/src/checks.c b/src/checks.c
-index f3b2b54..b5d8185 100644
+index f3b2b54..139b268 100644
 --- a/src/checks.c
 +++ b/src/checks.c
 @@ -466,7 +466,7 @@ void __health_adjust(struct server *s, short status)
@@ -677,7 +677,7 @@ index f3b2b54..b5d8185 100644
 -			if (s->proxy->options2 & PR_O2_CHK_SNDST)
 -				bo_putblk(check->bo, trash.str, httpchk_build_status_header(s, trash.str, trash.size));
 +			/* set up the http request with headers correctly */
-+			hlen = httpchk_build_headers(s, trash.str);
++			hlen = httpchk_build_headers(s, trash.str, trash.size);
 +			if (hlen)
 +				bo_putblk(check->bo, trash.str, hlen);
  			bo_putstr(check->bo, "\r\n");
